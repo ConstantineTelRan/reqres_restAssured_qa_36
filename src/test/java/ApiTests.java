@@ -1,5 +1,8 @@
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import model.request.UserDto;
+import model.response.ListUsersRespDto;
+import model.response.UserRespDto;
 import org.hamcrest.Matchers;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -49,6 +52,85 @@ public class ApiTests {
                 .body("data[0].id", Matchers.equalTo(7))
                 .body("data[1].email", Matchers.equalTo("lindsay.ferguson@reqres.in"));
     }
+
+    @Test
+    public void createUser_1() {
+        String body = "{\n" +
+                "    \"name\": \"morpheus\",\n" +
+                "    \"job\": \"leader\"\n" +
+                "}";
+        RestAssured.given()
+                .header("Content-type","application/json")
+                .body(body)
+                .when()
+                .baseUri(BASE_URI)
+                .log().all()
+                .post("/api/users")
+                .then()
+                .log().all()
+                .assertThat()
+                .body("name", Matchers.equalTo("morpheus"));
+    }
+
+    @Test
+    public void createUser_2() {
+        String name = "morpheus";
+        String job = "leader";
+        UserDto userDto = new UserDto(name, job);
+
+        RestAssured.given()
+                .header("Content-type","application/json")
+                .body(userDto)
+                .when()
+                .baseUri(BASE_URI)
+                .log().all()
+                .post("/api/users")
+                .then()
+                .log().all()
+                .assertThat()
+                .body("name", Matchers.equalTo(name));
+    }
+
+    @Test
+    public void createUser_3() {
+        String name = "morpheus";
+        String job = "leader";
+        UserDto userDto = new UserDto(name, job);
+
+        UserRespDto userRespDto =  RestAssured.given()
+                .header("Content-type","application/json")
+                .body(userDto)
+                .when()
+                .baseUri(BASE_URI)
+                .log().all()
+                .post("/api/users")
+                .then()
+                .log().all()
+                .extract().as(UserRespDto.class);
+        Assert.assertEquals(userRespDto.name, name);
+        Assert.assertEquals(userRespDto.job, job);
+
+    }
+
+    @Test
+    public void getListUsers() {
+        ListUsersRespDto listUsersRespDto = RestAssured.given()
+                .when()
+                .baseUri(BASE_URI)
+                .log().all()
+                .get("/api/users?page=2")
+                .then()
+                .log().all()
+                .extract().as(ListUsersRespDto.class);
+
+        Assert.assertEquals(listUsersRespDto.data.get(2).email, "tobias.funke@reqres.in");
+        Assert.assertEquals(listUsersRespDto.data.get(5).first_name, "Rachel");
+    }
+
+
+
+
+
 
 
 
